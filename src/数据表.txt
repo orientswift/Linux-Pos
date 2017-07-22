@@ -1,0 +1,81 @@
+create table user (user_id varchar2(6) PRIMARY KEY NOT NULL, user_name varchar2(15) NOT NULL, user_password varchar2(16) NOT NULL, user_type INTEGER NOT NULL, user_comment varchar2(30));
+
+insert into user values('000000','管理员','admin',2,NULL);
+insert into user values('100000','赵子龙','zhaozilong',1,NULL);
+insert into user values('200000','诸葛亮','zhugeliang',0,NULL);
+
+//雇员表user
+user_id varchar2(6) PRIMARY KEY, 雇员id
+user_name varchar2(15), 雇员姓名
+user_password varchar2(16), 雇员密码
+user_type INTEGER, 雇员类型：0普通雇员，1可退货删除雇员，2管理员
+user_comment 备注
+
+=================================================================================_
+
+create table sale_total (sale_total_id INTEGER PRIMARY KEY NOT NULL, user_id varchar2(6) REFERENCES user(user_id) NOT NULL, sale_total_number varchar2(18) NOT NULL, sale_total_date DATE NOT NULL, sale_total_price number(4,2), sale_total_money number(4,2), sale_total_change number(4,2), sale_total_state INTEGER);
+
+insert into sale_total values(6666,'200000','201707172121210001','20170717212121',1000,999,1,1);
+
+//销售表sale_total
+sale_total_id INTEGER PRIMARY KEY NOT NULL, 销售id
+user_id varchar2(6) REFERENCES user(user_id) NOT NULL, 雇员id-外键
+sale_total_number varchar2(18) NOT NULL, 销售单号
+sale_total_date DATE NOT NULL, 销售日期
+sale_total_price number(4,2), 应付金额
+sale_total_money number(4,2), 实收金额
+sale_total_change number(4,2), 找零金额
+sale_total_state INTEGER 销售状态
+
+================================================================================
+
+create table sale_detail (sale_detail_id INTEGER PRIMARY KEY AUTOINCREMENT, sale_total_id REFERENCES sale_total(sale_total_id) NOT NULL, goods_code varchar2(8) REFERENCES goods(goods_code) NOT NULL, sale_detail_count INTEGER NOT NULL, sale_detail_price number(4,2) NOT NULL);
+
+insert into sale_detail values(null,0001,'CM000001',1,20);
+
+//销售明细表sale_detail
+sale_detail_id INTEGER PRIMARY KEY NOT NULL, 销售明细id
+sale_total_id REFERENCES sale_total(sale_total_id) NOT NULL, 销售id
+goods_code varchar2(8) REFERENCES goods(goods_code) NOT NULL, 商品条形吗
+sale_detail_count INTEGER NOT NULL, 数量
+sale_detail_price number(4,2) NOT NULL 销售价格
+
+================================================================================
+
+create table goods (goods_code varchar2(8) PRIMARY KEY NOT NULL, goods_name varchar2(30) NOT NULL, goods_unit varchar2(16) NOT NULL, goods_size varchar2(16) NOT NULL, goods_price number(4,2) NOT NULL, goods_cost number(4,2) NOT NULL, goods_num INTEGER NOT NULL, goods_discount number(4,2) NOT NULL);
+
+insert into goods values('CM000001','洗衣粉','袋','1000克',20,18,500,1);
+insert into goods values('CM000002','沐浴露','瓶','500ml',30,27,300,0.98);
+insert into goods values('CM000003','洗衣机','台','6L大容量',1000,800,10,0.95);
+
+//商品表goods
+goods_code varchar2(8) PRIMARY KEY NOT NULL, 商品条形码
+goods_name varchar2(30) NOT NULL, 商品名称
+goods_unit varchar2(16) NOT NULL, 单位
+goods_size varchar2(16) NOT NULL, 规格
+goods_price number(4,2) NOT NULL, 销售价格
+goods_cost number(4,2) NOT NULL, 进货价格
+goods_num INTEGER NOT NULL, 商品库存
+goods_discount number(4,2) NOT NULL 折扣
+
+===============================================================================
+
+select * from user,sale_total,sale_detail,goods where user.user_id=sale_total.user_id and sale_total.sale_total_id=sale_detail.sale_total_id and sale_detail.goods_code=goods.goods_code;
+
+================================================================================
+
+select s.sale_detail_id,s.goods_code,g.goods_name,g.goods_size,g.goods_unit,g.goods_price,g.goods_discount,s.sale_detail_count,s.sale_detail_price from sale_detail as s,goods as g where s.sale_total_id=6666 and s.goods_code=g.goods_code
+
+//1|CM000001|洗衣粉|1000克|袋|20|1|1|20
+
+===============================================================================
+
+列出该数据库中的所有表：.table
+显示表的结构：select * from sqlite_master where type="table";
+
+================================================================================
+
+添加销售条目
+insert into sale_detail select null,2222,g.goods_code,3,g.goods_price*g.goods_discount*3 from goods as g where g.goods_code='CM000001';
+
+================================================================================
